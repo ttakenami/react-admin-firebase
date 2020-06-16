@@ -4,24 +4,37 @@ interface ParsedUpload {
   rawFile: File | any;
 }
 
-export function parseDocGetAllUploads(obj: {}): ParsedUpload[] {
+interface ParsedDocRef {
+  fieldDotsPath: string;
+  refPath: string;
+}
+
+interface ParseResult {
+  uploads: ParsedUpload[]
+  refdocs: ParsedDocRef[]
+}
+
+export function parseDocGetAllUploads(obj: {}): ParseResult {
   const isObject = !!obj && typeof obj === "object";
-  if (!isObject) {
-    return [];
+  const result: ParseResult = {
+    uploads: [],
+    refdocs: []
   }
-  const uploads = [];
+  if (!isObject) {
+    return result;
+  }
   Object.keys(obj).map((key) => {
     const value = obj[key];
-    recusivelyParseObjectValue(value, key, uploads);
+    recusivelyParseObjectValue(value, key, result);
   });
-  return uploads;
+  return result;
 }
 
 export function recusivelyParseObjectValue(
   input: any,
   fieldPath: string,
-  uploads: ParsedUpload[]
-) {
+  result: ParseResult
+): any {
   const isFalsey = !input;
   if (isFalsey) {
     return input;
@@ -37,16 +50,25 @@ export function recusivelyParseObjectValue(
   const isArray = Array.isArray(input);
   if (isArray) {
     return (input as []).map((value, index) =>
-      recusivelyParseObjectValue(value, `${fieldPath}.${index}`, uploads)
+      recusivelyParseObjectValue(value, `${fieldPath}.${index}`, result)
     );
   }
   const isObject = typeof input === "object";
   if (!isObject) {
     return;
   }
+  const isRefField = !!input && input.hasOwnProperty("___refdocument");
+  if (isRefField) {
+    const refDoc = input as ParsedRefDoc
+    result.refdocs.push({
+      fieldDotsPath: fieldPath,
+      refPath: refDoc.___refdocument
+    });
+    return;
+  }
   const isFileField = !!input && input.hasOwnProperty("rawFile");
   if (isFileField) {
-    uploads.push({
+    result.uploads.push({
       fieldDotsPath: fieldPath,
       fieldSlashesPath: fieldPath.split('.').join('/'),
       rawFile: input.rawFile,
@@ -56,7 +78,11 @@ export function recusivelyParseObjectValue(
   }
   Object.keys(input).map((key) => {
     const value = input[key];
-    recusivelyParseObjectValue(value, `${fieldPath}.${key}`, uploads);
+    recusivelyParseObjectValue(value, `${fieldPath}.${key}`, result);
   });
   return input;
+}
+
+interface ParsedRefDoc {
+  ___refdocument: string
 }

@@ -346,7 +346,8 @@ export class FirebaseClient implements IFirebaseClient {
     }
     const docPath = r.collection.doc(id).path;
 
-    const uploads = parseDocGetAllUploads(data);
+    const result = parseDocGetAllUploads(data);
+    const uploads = result.uploads;
     await Promise.all(
       uploads.map(async (u) => {
         const link = await this.uploadAndGetLink(u.rawFile, docPath, u.fieldSlashesPath)
