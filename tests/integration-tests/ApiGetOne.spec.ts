@@ -2,7 +2,7 @@ import { IFirebaseWrapper } from "../../src/providers/database/firebase/IFirebas
 import { initFireWrapper, clearDb } from "./utils/test-helpers";
 import { FirebaseClient } from "../../src/providers/database/FirebaseClient";
 
-describe("api methods", () => {
+describe("api methods: FirebaseClient apiGetOne", () => {
   let fire: IFirebaseWrapper;
   const testId = "test-apigetone";
   beforeEach(() => (fire = initFireWrapper(testId)));
@@ -49,5 +49,23 @@ describe("api methods", () => {
     expect(data.a).toBeInstanceOf(Date);
     expect(data.b.b1).toBeInstanceOf(Date);
     expect(data.b.c.c1).toBeInstanceOf(Date);
+  }, 100000);
+
+  test("Check refdocument parser works", async () => {
+    const collName = "get-one";
+    const docId = "12345";
+    const collection = fire.db().collection(collName);
+    const testData = {
+      refdoc: fire.db().doc("some/doc"),
+    };
+    await collection.doc(docId).set(testData);
+
+    const client = new FirebaseClient(fire, {});
+    const result = await client.apiGetOne(collName, {
+      id: docId,
+    });
+    const data = result.data as any;
+    expect(data).toBeTruthy();
+    expect(data.refdoc).toMatchObject({ ___refdocument: "some/doc" });
   }, 100000);
 });

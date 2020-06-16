@@ -7,7 +7,7 @@ import {
 import { RAFirebaseOptions } from "../RAFirebaseOptions";
 import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
 import { User } from "@firebase/auth-types";
-import { log, getAbsolutePath, messageTypes, logError, parseAllDatesDoc } from "../../misc";
+import { log, getAbsolutePath, messageTypes, parseAllDocFromFirestore } from "../../misc";
 
 export interface IResource {
   path: string;
@@ -131,7 +131,7 @@ export class ResourceManager {
 
   private parseFireStoreDocument(doc: QueryDocumentSnapshot): {} {
     const data = doc.data();
-    parseAllDatesDoc(data);
+    parseAllDocFromFirestore(data);
     // React Admin requires an id field on every document,
     // So we can just using the firestore document id
     return { id: doc.id, ...data };
