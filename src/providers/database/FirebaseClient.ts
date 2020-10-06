@@ -147,7 +147,7 @@ export class FirebaseClient implements IFirebaseClient {
     const id = params.id;
     delete params.data.id;
     const r = await this.tryGetResource(resourceName);
-    log("apiUpdate", { resourceName, resource: r, params });
+    log("apiUpdate fork", { resourceName, resource: r, params });
     const data = await this.parseDataAndUpload(r, id, params.data);
     const docObj = { ...data };
     this.checkRemoveIdField(docObj);
